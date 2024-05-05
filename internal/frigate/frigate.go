@@ -203,24 +203,34 @@ func SendMessageEvent(FrigateEvent EventStruct, bot *tgbotapi.BotAPI) {
 	redis.AddNewEvent(FrigateEvent.ID, "InWork", time.Duration(60)*time.Second)
 
 	// Prepare text message
-	text := "*Event*\n"
-	text += "┣*Camera*\n┗ `" + FrigateEvent.Camera + "`\n"
-	text += "┣*Label*\n┗ `" + FrigateEvent.Label + "`\n"
+	text := ""
+	text += "*Камера:* `" + FrigateEvent.Camera + "`\n"
+	text += "*Обнаружен:* "
+	if FrigateEvent.Label == "person" {
+		text += "`Человек`"
+	} else {
+		text += FrigateEvent.Label
+	}
+
+	text += fmt.Sprintf(" (вероятность %d", (FrigateEvent.Data.TopScore*100)) + "%)\n"
+
+	
 	t_start := time.Unix(int64(FrigateEvent.StartTime), 0)
-	text += fmt.Sprintf("┣*Start time*\n┗ `%s", t_start) + "`\n"
+	text += fmt.Sprintf("*Начало:*\n `%s", t_start) + "`\n"
+	
 	if FrigateEvent.EndTime == 0 {
-		text += "┣*End time*\n┗ `In progess`" + "\n"
+		text += "*Завершение:*\n `В процессе`" + "\n"
 	} else {
 		t_end := time.Unix(int64(FrigateEvent.EndTime), 0)
-		text += fmt.Sprintf("┣*End time*\n┗ `%s", t_end) + "`\n"
+		text += fmt.Sprintf("*Завершение:*\n `%s", t_end) + "`\n"
 	}
-	text += fmt.Sprintf("┣*Top score*\n┗ `%f", (FrigateEvent.Data.TopScore*100)) + "%`\n"
-	text += "┣*Event id*\n┗ `" + FrigateEvent.ID + "`\n"
-	text += "┣*Zones*\n┗ `" + strings.Join(GETZones(FrigateEvent.Zones), ", ") + "`\n"
-	text += "*URLs*\n"
-	text += "┣[Events](" + conf.FrigateExternalURL + "/events?cameras=" + FrigateEvent.Camera + "&labels=" + FrigateEvent.Label + "&zones=" + strings.Join(GETZones(FrigateEvent.Zones), ",") + ")\n"
-	text += "┣[General](" + conf.FrigateExternalURL + ")\n"
-	text += "┗[Source clip](" + conf.FrigateExternalURL + "/api/events/" + FrigateEvent.ID + "/clip.mp4)\n"
+	//text += fmt.Sprintf("┣*Top score*\n┗ `%f", (FrigateEvent.Data.TopScore*100)) + "%`\n"
+	//text += "┣*Event id*\n┗ `" + FrigateEvent.ID + "`\n"
+	//text += "┣*Zones*\n┗ `" + strings.Join(GETZones(FrigateEvent.Zones), ", ") + "`\n"
+	//text += "*URLs*\n"
+	//text += "┣[Events](" + conf.FrigateExternalURL + "/events?cameras=" + FrigateEvent.Camera + "&labels=" + FrigateEvent.Label + "&zones=" + strings.Join(GETZones(FrigateEvent.Zones), ",") + ")\n"
+	//text += "┣[General](" + conf.FrigateExternalURL + ")\n"
+	//text += "┗[Source clip](" + conf.FrigateExternalURL + "/api/events/" + FrigateEvent.ID + "/clip.mp4)\n"
 
 	// Save thumbnail
 	FilePathThumbnail := SaveThumbnail(FrigateEvent.ID, FrigateEvent.Thumbnail, bot)
